@@ -1,5 +1,7 @@
 
 using System;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,6 +11,14 @@ public class PlayerController : MonoBehaviour
         Polar,
         Grizz,
         Panda
+    };
+
+    enum States{
+        OnGround,
+        InAir,
+        InWater,
+        CroucingOnGround,
+        Climbing,
     };
     
     Rigidbody2D rb;
@@ -20,9 +30,25 @@ public class PlayerController : MonoBehaviour
 
     public float speed = 3.0f;
     public float jumpForce = 10.0f;
-    bool isGrounded = true;
+    public float swimForce = 5.0f;
 
-    Bears currentBear = Bears.Polar;
+    public Bears startingBear = Bears.Polar;
+
+    public SpriteRenderer polarSpriteRenderer;
+    public SpriteRenderer grizzSpriteRenderer;
+    public SpriteRenderer pandaSpriteRenderer;
+
+    public Sprite polarDefaultSprite;
+    public Sprite polarInWaterSprite;
+    public Sprite grizzDefaultSprite;
+    public Sprite grizzCrouchSprite;
+    public Sprite pandaDefaultSprite;
+    public Sprite pandaClimbSprite;
+
+
+    States currentState = States.OnGround;
+
+    Bears currentBear;
 
     Vector2 move;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -34,6 +60,8 @@ public class PlayerController : MonoBehaviour
         NextBearAction = InputSystem.actions.FindAction("Next");
         PreviousBearAction = InputSystem.actions.FindAction("Previous");
         BearAction = InputSystem.actions.FindAction("Attack");
+        currentBear = startingBear;
+        swapBears();
     }
 
     // Update is called once per frame
@@ -49,14 +77,56 @@ public class PlayerController : MonoBehaviour
     {
         //Vector2 position = (Vector2)rb.position + move * speed * Time.deltaTime;
         rb.linearVelocityX = move.x * speed;
-
+        /*if (currentBear == Bears.Polar && currentState == States.InWater)
+        {
+            Debug.Log("Swimming in water with polar bear!");
+            rb.AddForce(Vector2.up * swimForce, ForceMode2D.Force); // Reduced vertical control in water
+        }*/
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
+        ContactPoint2D contact = collision.GetContact(0);
+        Debug.Log("Collision entered with layer: " + LayerMask.LayerToName(collision.gameObject.layer) + " at point: " + contact.point);
+        Debug.Log(contact.normal);
+        switch(LayerMask.LayerToName(collision.gameObject.layer))
         {
-            isGrounded = true;
+            case "Ground":
+                switch(currentState)
+                {
+                    case States.InAir:
+                        currentState = States.OnGround;
+                        break;
+                    case States.InWater:
+                    Debug.Log("Exiting water and landing on ground with polar bear!");
+                        rb.AddForceY(4f, ForceMode2D.Impulse); // Small upward force to prevent sticking to the ground
+                        break;
+                }
+                break;
+        }
+
+    }
+
+    void OnTriggerEnter2D(Collider2D collider)
+    {
+        Debug.Log("Trigger entered with layer: " + LayerMask.LayerToName(collider.gameObject.layer));
+        if (currentBear == Bears.Polar && collider.gameObject.layer == LayerMask.NameToLayer("Water"))
+        {
+            currentState = States.InWater;
+            polarSpriteRenderer.sprite = polarInWaterSprite;
+            //rb.linearVelocityY = 0f;
+            rb.gravityScale = 1f;
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D collider)
+    {
+        Debug.Log("Trigger exited with layer: " + LayerMask.LayerToName(collider.gameObject.layer));
+        if (currentBear == Bears.Polar && collider.gameObject.layer == LayerMask.NameToLayer("Water"))
+        {
+            currentState = States.OnGround;
+            polarSpriteRenderer.sprite = polarDefaultSprite;
+            rb.gravityScale = 3f;
         }
     }
 
@@ -64,12 +134,13 @@ public class PlayerController : MonoBehaviour
     {
         move = MoveAction.ReadValue<Vector2>();
     }
+    
     void handleJump()
     {
-        if (JumpAction.triggered && isGrounded)
+        if (JumpAction.triggered && currentState == States.OnGround)
         {
-            rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
-            isGrounded = false;
+            rb.AddForceY(jumpForce, ForceMode2D.Impulse);
+            currentState = States.InAir;
         }
     }
 
@@ -77,34 +148,13 @@ public class PlayerController : MonoBehaviour
     {
         if (NextBearAction.triggered)
         {
-            
-            foreach (Transform bear in transform)
-            {
-                if (bear.name != currentBear.ToString())
-                {
-                    bear.localPosition += new Vector3(0, -1);
-                }
-                else
-                {
-                    bear.localPosition += new Vector3(0, 2);
-                }
-            }
             currentBear = (Bears)(((int)currentBear + 1) % Enum.GetNames(typeof(Bears)).Length);
+            swapBears();
         }
         if (PreviousBearAction.triggered)
         {
             currentBear = (Bears)(((int)currentBear - 1 + Enum.GetNames(typeof(Bears)).Length) % Enum.GetNames(typeof(Bears)).Length);
-            foreach (Transform bear in transform)
-            {
-                if (bear.name != currentBear.ToString())
-                {
-                    bear.localPosition += new Vector3(0, 1);
-                }
-                else
-                {
-                    bear.localPosition += new Vector3(0, -2);
-                }
-            }            
+            swapBears(); 
         }
     }
 
@@ -122,12 +172,32 @@ public class PlayerController : MonoBehaviour
                 case Bears.Grizz:
                     // Grizzly bear action
                     Debug.Log("Grizzly bear action executed!");
+                    if (currentState == States.OnGround)
+                    {
+                        currentState = States.CroucingOnGround;
+                        grizzSpriteRenderer.sprite = grizzCrouchSprite;
+                    }
+                    else if (currentState == States.CroucingOnGround)
+                    {
+                        currentState = States.OnGround;
+                        grizzSpriteRenderer.sprite = grizzDefaultSprite;
+                    }
                     break;
                 case Bears.Panda:
                     // Panda bear action
                     Debug.Log("Panda bear action executed!");
                     break;
             }
+        }
+    }
+
+    void swapBears()
+    {
+        int yOffset = 0;
+        for (int i = (int)currentBear; i < (int)currentBear + 3; i++)
+        {
+            Transform bear = transform.GetChild(i % 3);
+            bear.localPosition = new Vector3(0, yOffset++);
         }
     }
 }
