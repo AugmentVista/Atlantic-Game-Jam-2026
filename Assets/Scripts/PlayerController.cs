@@ -1,14 +1,23 @@
 
 using System;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    public enum Bears{
+    public enum Bear{
         Polar,
         Grizz,
         Panda
+    };
+
+    public enum State{
+        OnGround,
+        InAir,
+        InWater,
+        Climbing,
     };
     
     Rigidbody2D rb;
@@ -16,15 +25,22 @@ public class PlayerController : MonoBehaviour
     InputAction JumpAction;
     InputAction NextBearAction;
     InputAction PreviousBearAction;
-    InputAction BearAction;
-
     public float speed = 3.0f;
     public float jumpForce = 10.0f;
-    bool isGrounded = true;
+    public float leaveWaterForce = 9.0f;
+    public float gravityForce = 3.0f;
+    public float crouchScale = 0.8f;
 
-    Bears currentBear = Bears.Polar;
+    public Bear startingBear = Bear.Polar;
+
+    State currentState = State.OnGround;
+
+    Bear currentBear;
 
     Vector2 move;
+
+    public State CurrentState { get => currentState; set => currentState = value; }
+    public Bear CurrentBear { get => currentBear; set => currentBear = value; }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -33,7 +49,9 @@ public class PlayerController : MonoBehaviour
         JumpAction = InputSystem.actions.FindAction("Jump");
         NextBearAction = InputSystem.actions.FindAction("Next");
         PreviousBearAction = InputSystem.actions.FindAction("Previous");
-        BearAction = InputSystem.actions.FindAction("Attack");
+        currentBear = startingBear;
+        rb.gravityScale = gravityForce;
+        swapBears();
     }
 
     // Update is called once per frame
@@ -42,92 +60,82 @@ public class PlayerController : MonoBehaviour
         handleMove();
         handleJump();
         handleBearSwitch();
-        handleBearAction();
     }
 
     void FixedUpdate()
     {
-        //Vector2 position = (Vector2)rb.position + move * speed * Time.deltaTime;
         rb.linearVelocityX = move.x * speed;
-
+        if (canClimb() && currentState == State.Climbing)
+        {
+            rb.gravityScale = 0f;
+            rb.linearVelocityY = move.y * speed;
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
+        switch(collision.gameObject.tag)
         {
-            isGrounded = true;
+            case "Ground":
+                switch(currentState)
+                {
+                    case State.InAir:
+                        currentState = State.OnGround;
+                        break;
+                    case State.InWater:
+                        Debug.Log("Exiting water and landing on ground with polar bear!");
+                        rb.AddForceY(leaveWaterForce, ForceMode2D.Impulse); // Small bounce when exiting water
+                        break;
+                }
+                break;
         }
+
     }
 
     void handleMove()
     {
         move = MoveAction.ReadValue<Vector2>();
     }
+    
     void handleJump()
     {
-        if (JumpAction.triggered && isGrounded)
+        if (JumpAction.triggered && 
+            (currentState == State.OnGround || 
+            (currentBear == Bear.Polar && currentState == State.InWater)
+        ))
         {
-            rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
-            isGrounded = false;
+            rb.AddForceY(jumpForce, ForceMode2D.Impulse);
+            currentState = State.InAir;
         }
     }
 
     void handleBearSwitch()
     {
+        if (currentState == State.InWater) return; 
         if (NextBearAction.triggered)
         {
-            
-            foreach (Transform bear in transform)
-            {
-                if (bear.name != currentBear.ToString())
-                {
-                    bear.localPosition += new Vector3(0, -1);
-                }
-                else
-                {
-                    bear.localPosition += new Vector3(0, 2);
-                }
-            }
-            currentBear = (Bears)(((int)currentBear + 1) % Enum.GetNames(typeof(Bears)).Length);
+            currentBear = (Bear)(((int)currentBear + 1) % Enum.GetNames(typeof(Bear)).Length);
+            swapBears();
         }
         if (PreviousBearAction.triggered)
         {
-            currentBear = (Bears)(((int)currentBear - 1 + Enum.GetNames(typeof(Bears)).Length) % Enum.GetNames(typeof(Bears)).Length);
-            foreach (Transform bear in transform)
-            {
-                if (bear.name != currentBear.ToString())
-                {
-                    bear.localPosition += new Vector3(0, 1);
-                }
-                else
-                {
-                    bear.localPosition += new Vector3(0, -2);
-                }
-            }            
+            currentBear = (Bear)(((int)currentBear - 1 + Enum.GetNames(typeof(Bear)).Length) % Enum.GetNames(typeof(Bear)).Length);
+            swapBears(); 
         }
     }
 
-    void handleBearAction()
+    void swapBears()
     {
-        if (BearAction.triggered)
-        {   
-            // Implement bear-specific actions here
-            switch(currentBear)
-            {
-                case Bears.Polar:
-                    // Polar bear action
-                    Debug.Log("Polar bear action executed!");
-                    break;
-                case Bears.Grizz:
-                    // Grizzly bear action
-                    Debug.Log("Grizzly bear action executed!");
-                    break;
-                case Bears.Panda:
-                    // Panda bear action
-                    Debug.Log("Panda bear action executed!");
-                    break;
-            }
+        int yOffset = 0;
+        for (int i = (int)currentBear; i < (int)currentBear + 3; i++)
+        {
+            Transform bear = transform.GetChild(i % 3);
+            bear.localPosition = new Vector3(0, yOffset++);
         }
+    }
+
+    Boolean canClimb()
+    {
+        return currentBear == Bear.Panda && transform.GetChild((int)Bear.Panda).GetComponent<Panda>().CanClimb;
     }
 }
