@@ -17,7 +17,6 @@ public class PlayerController : MonoBehaviour
         OnGround,
         InAir,
         InWater,
-        CroucingOnGround,
         Climbing,
     };
     
@@ -30,7 +29,9 @@ public class PlayerController : MonoBehaviour
 
     public float speed = 3.0f;
     public float jumpForce = 10.0f;
-    public float swimForce = 5.0f;
+    public float leaveWaterForce = 9.0f;
+    public float gravityForce = 3.0f;
+    public float crouchScale = 0.8f;
 
     public Bears startingBear = Bears.Polar;
 
@@ -45,8 +46,16 @@ public class PlayerController : MonoBehaviour
     public Sprite pandaDefaultSprite;
     public Sprite pandaClimbSprite;
 
+    public GameObject pandaPrefab;
+    public GameObject polarPrefab;
+    public GameObject platformPrefab;
+    GameObject pandaClone;
+    GameObject polarClone;
+    GameObject platform;
 
     States currentState = States.OnGround;
+    Boolean canClimb = false;
+    Boolean isCrouching = false;
 
     Bears currentBear;
 
@@ -61,6 +70,7 @@ public class PlayerController : MonoBehaviour
         PreviousBearAction = InputSystem.actions.FindAction("Previous");
         BearAction = InputSystem.actions.FindAction("Attack");
         currentBear = startingBear;
+        rb.gravityScale = gravityForce;
         swapBears();
     }
 
@@ -69,27 +79,24 @@ public class PlayerController : MonoBehaviour
     {
         handleMove();
         handleJump();
+        handleClimb();
         handleBearSwitch();
         handleBearAction();
     }
 
     void FixedUpdate()
     {
-        //Vector2 position = (Vector2)rb.position + move * speed * Time.deltaTime;
         rb.linearVelocityX = move.x * speed;
-        /*if (currentBear == Bears.Polar && currentState == States.InWater)
+        if (currentBear == Bears.Panda && currentState == States.Climbing)
         {
-            Debug.Log("Swimming in water with polar bear!");
-            rb.AddForce(Vector2.up * swimForce, ForceMode2D.Force); // Reduced vertical control in water
-        }*/
+            rb.gravityScale = 0f;
+            rb.linearVelocityY = move.y * speed;
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        ContactPoint2D contact = collision.GetContact(0);
-        Debug.Log("Collision entered with layer: " + LayerMask.LayerToName(collision.gameObject.layer) + " at point: " + contact.point);
-        Debug.Log(contact.normal);
-        switch(LayerMask.LayerToName(collision.gameObject.layer))
+        switch(collision.gameObject.tag)
         {
             case "Ground":
                 switch(currentState)
@@ -98,10 +105,23 @@ public class PlayerController : MonoBehaviour
                         currentState = States.OnGround;
                         break;
                     case States.InWater:
-                    Debug.Log("Exiting water and landing on ground with polar bear!");
-                        rb.AddForceY(4f, ForceMode2D.Impulse); // Small upward force to prevent sticking to the ground
+                        Debug.Log("Exiting water and landing on ground with polar bear!");
+                        rb.AddForceY(leaveWaterForce, ForceMode2D.Impulse); // Small bounce when exiting water
                         break;
                 }
+                break;
+            case "Platform":
+                isCrouching = false;
+                grizzSpriteRenderer.sprite = grizzDefaultSprite;
+                rb.transform.localScale = new Vector3(1, 1, 1);
+                Destroy(polarClone);
+                Destroy(pandaClone);
+                Destroy(platform);
+                transform.GetChild((int)Bears.Polar).gameObject.SetActive(true);
+                transform.GetChild((int)Bears.Panda).gameObject.SetActive(true);
+                transform.GetChild((int)Bears.Grizz).localPosition = Vector3.zero;
+                transform.GetChild((int)Bears.Panda).localPosition = new Vector3(0, 1, 0); 
+                transform.GetChild((int)Bears.Polar).localPosition = new Vector3(0, 2, 0); 
                 break;
         }
 
@@ -109,24 +129,44 @@ public class PlayerController : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collider)
     {
-        Debug.Log("Trigger entered with layer: " + LayerMask.LayerToName(collider.gameObject.layer));
-        if (currentBear == Bears.Polar && collider.gameObject.layer == LayerMask.NameToLayer("Water"))
+        switch(collider.gameObject.tag)
         {
-            currentState = States.InWater;
-            polarSpriteRenderer.sprite = polarInWaterSprite;
-            //rb.linearVelocityY = 0f;
-            rb.gravityScale = 1f;
+            case "Water":
+                if (currentBear == Bears.Polar)
+                {
+                    currentState = States.InWater;
+                polarSpriteRenderer.sprite = polarInWaterSprite;
+                rb.linearVelocityY = 0f;
+                rb.gravityScale = 0f;
+                }
+                break;
+            case "Climbable":
+                canClimb = true;
+                break;
         }
     }
 
     void OnTriggerExit2D(Collider2D collider)
     {
-        Debug.Log("Trigger exited with layer: " + LayerMask.LayerToName(collider.gameObject.layer));
-        if (currentBear == Bears.Polar && collider.gameObject.layer == LayerMask.NameToLayer("Water"))
+        switch (collider.gameObject.tag)
         {
-            currentState = States.OnGround;
-            polarSpriteRenderer.sprite = polarDefaultSprite;
-            rb.gravityScale = 3f;
+            case "Water":
+                if (currentBear == Bears.Polar)
+                {
+                    currentState = States.InAir;
+                    polarSpriteRenderer.sprite = polarDefaultSprite;
+                    rb.gravityScale = gravityForce;
+                }
+                break;
+            case "Climbable":
+                canClimb = false;
+                if (currentState == States.Climbing)
+                {
+                    currentState = States.InAir;
+                    rb.gravityScale = gravityForce;
+                    pandaSpriteRenderer.sprite = pandaDefaultSprite;
+                }
+                break;
         }
     }
 
@@ -137,15 +177,31 @@ public class PlayerController : MonoBehaviour
     
     void handleJump()
     {
-        if (JumpAction.triggered && currentState == States.OnGround)
+        if (JumpAction.triggered && 
+            (currentState == States.OnGround || 
+            (currentBear == Bears.Polar && currentState == States.InWater)
+        ))
         {
             rb.AddForceY(jumpForce, ForceMode2D.Impulse);
             currentState = States.InAir;
         }
     }
 
+    void handleClimb()
+    {
+        if (canClimb && currentBear == Bears.Panda)
+        {
+            if (move.y != 0)
+            {
+                currentState = States.Climbing;
+                pandaSpriteRenderer.sprite = pandaClimbSprite;
+            }
+        }
+    }
+
     void handleBearSwitch()
     {
+        if (currentState == States.InWater) return; 
         if (NextBearAction.triggered)
         {
             currentBear = (Bears)(((int)currentBear + 1) % Enum.GetNames(typeof(Bears)).Length);
@@ -172,15 +228,16 @@ public class PlayerController : MonoBehaviour
                 case Bears.Grizz:
                     // Grizzly bear action
                     Debug.Log("Grizzly bear action executed!");
-                    if (currentState == States.OnGround)
+                    if (!isCrouching)
                     {
-                        currentState = States.CroucingOnGround;
+                        isCrouching = true;
+                        rb.transform.localScale = new Vector3(1, crouchScale, 1); 
                         grizzSpriteRenderer.sprite = grizzCrouchSprite;
-                    }
-                    else if (currentState == States.CroucingOnGround)
-                    {
-                        currentState = States.OnGround;
-                        grizzSpriteRenderer.sprite = grizzDefaultSprite;
+                        transform.GetChild((int)Bears.Polar).gameObject.SetActive(false);
+                        transform.GetChild((int)Bears.Panda).gameObject.SetActive(false);
+                        pandaClone = Instantiate(pandaPrefab, transform.position + new Vector3(0, 1, 0), Quaternion.identity); 
+                        polarClone = Instantiate(polarPrefab, transform.position + new Vector3(0, 2, 0), Quaternion.identity);
+                        platform = Instantiate(platformPrefab, transform.position + new Vector3(0, 1, 0), Quaternion.identity);
                     }
                     break;
                 case Bears.Panda:

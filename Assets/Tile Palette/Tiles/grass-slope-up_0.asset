@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
   m_Name: grass-slope-up_0
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: -7384546218666001631, guid: 1e72a17be342be99ab99520787353ec7, type: 3}
+  m_Sprite: {fileID: -7384546218666001631, guid: 787523fd7073a471599031b759f99de7, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1

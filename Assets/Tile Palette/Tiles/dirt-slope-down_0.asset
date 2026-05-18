@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: grass-slope-down_0
+  m_Name: dirt-slope-down_0
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: 2094031332232361072, guid: 866f0398f8e9f4b5e841eed6bcaccbc8, type: 3}
+  m_Sprite: {fileID: 2567384344274004493, guid: d189164abd5218a29880c3058397cf98, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1

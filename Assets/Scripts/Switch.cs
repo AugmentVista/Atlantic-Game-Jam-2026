@@ -1,0 +1,49 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+public class Switch : MonoBehaviour
+{
+    InputAction SwitchAction;
+    public SpriteRenderer spriteRenderer;
+    public Sprite offSprite;
+    public Sprite onSprite;
+    public GameObject ladder;
+    bool isOn = false;
+    bool canActivate = false;
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        spriteRenderer.sprite = offSprite;
+        SwitchAction = InputSystem.actions.FindAction("Attack");
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (SwitchAction.triggered && canActivate && !isOn)
+        {
+            Debug.Log("Switch activated");
+            spriteRenderer.sprite = onSprite;
+            ladder.gameObject.transform.position = new Vector3(ladder.gameObject.transform.position.x, -1.8f, 0);
+            isOn = true;
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D collider)
+    {
+        if (collider.gameObject.tag == "Player")
+        {
+            Debug.Log("Player entered switch area");
+            canActivate = true;
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D collider)
+    {
+        if (collider.gameObject.tag == "Player")
+        {
+            Debug.Log("Player exited switch area");
+            canActivate = false;
+        }
+    }
+}

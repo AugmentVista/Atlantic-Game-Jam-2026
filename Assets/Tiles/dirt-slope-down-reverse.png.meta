@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 28ee1328da3ada5a2b99af8b4b6fa72d
+guid: bab54918d8fa21b1da78cfe9452cb078
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -669266593469238939
-    second: grass-slope-up-reverse_0
+      213: -6242439288951602351
+    second: dirt-slope-down-reverse_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: grass-slope-up-reverse_0
+      name: dirt-slope-down-reverse_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 100
-        height: 100
+        x: 2
+        y: 3
+        width: 98
+        height: 97
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 561fa34449946b6f0800000000000000
-      internalID: -669266593469238939
+      spriteID: 15309126a866e59a0800000000000000
+      internalID: -6242439288951602351
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      grass-slope-up-reverse_0: -669266593469238939
+      dirt-slope-down-reverse_0: -6242439288951602351
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
