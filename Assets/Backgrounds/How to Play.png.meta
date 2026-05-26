@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: b3121b7976ad787a4acc5aed928c066c
+guid: 0e17d133763093471bad5515babf6da8
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -5367830645852038984
-    second: bear-with-me_0
+      213: -5162744824295049183
+    second: How to Play_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,7 +113,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: bear-with-me_0
+      name: How to Play_0
       rect:
         serializedVersion: 2
         x: 0
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8b89883b772a185b0800000000000000
-      internalID: -5367830645852038984
+      spriteID: 12838e98fee3a58b0800000000000000
+      internalID: -5162744824295049183
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      bear-with-me_0: -5367830645852038984
+      How to Play_0: -5162744824295049183
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

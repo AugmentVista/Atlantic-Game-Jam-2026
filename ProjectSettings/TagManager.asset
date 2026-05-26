@@ -8,6 +8,8 @@ TagManager:
   - Platform
   - Ground
   - Water
+  - Cave
+  - Music
   layers:
   - Default
   - TransparentFX

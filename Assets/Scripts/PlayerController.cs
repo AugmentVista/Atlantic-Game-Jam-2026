@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
         InAir,
         InWater,
         Climbing,
+        Crouching
     };
     
     Rigidbody2D rb;
@@ -32,6 +33,10 @@ public class PlayerController : MonoBehaviour
     public float crouchScale = 0.8f;
 
     public Bear startingBear = Bear.Polar;
+
+    public AudioSource audioSource;
+    public AudioClip jumpClip;
+    public AudioClip splashClip;
 
     State currentState = State.OnGround;
 
@@ -83,13 +88,38 @@ public class PlayerController : MonoBehaviour
                         currentState = State.OnGround;
                         break;
                     case State.InWater:
-                        Debug.Log("Exiting water and landing on ground with polar bear!");
-                        rb.AddForceY(leaveWaterForce, ForceMode2D.Impulse); // Small bounce when exiting water
+                        rb.AddForceY(leaveWaterForce, ForceMode2D.Impulse);
                         break;
                 }
                 break;
         }
 
+    }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        switch(collision.gameObject.tag)
+        {
+             case "Water":
+                if (currentState != State.InWater) {
+                    audioSource.PlayOneShot(splashClip);
+                    currentState = State.InWater;
+                }
+                break;
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D collision)
+    {
+        switch(collision.gameObject.tag)
+        {
+             case "Water":
+                if (currentState == State.InWater) 
+                {
+                    currentState = State.InAir;
+                }
+                break;
+        }
     }
 
     void handleMove()
@@ -100,10 +130,14 @@ public class PlayerController : MonoBehaviour
     void handleJump()
     {
         if (JumpAction.triggered && 
-            (currentState == State.OnGround || 
-            (currentBear == Bear.Polar && currentState == State.InWater)
-        ))
+            (
+                currentState == State.OnGround || 
+                (currentBear == Bear.Polar && currentState == State.InWater) ||
+                (currentBear == Bear.Panda && currentState == State.Climbing)
+            )
+        )
         {
+            audioSource.PlayOneShot(jumpClip);
             rb.AddForceY(jumpForce, ForceMode2D.Impulse);
             currentState = State.InAir;
         }
@@ -111,7 +145,7 @@ public class PlayerController : MonoBehaviour
 
     void handleBearSwitch()
     {
-        if (currentState == State.InWater) return; 
+        if (currentState == State.InWater || currentState == State.Crouching || currentState == State.Climbing) return; 
         if (NextBearAction.triggered)
         {
             currentBear = (Bear)(((int)currentBear + 1) % Enum.GetNames(typeof(Bear)).Length);

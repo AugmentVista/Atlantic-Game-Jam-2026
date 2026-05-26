@@ -10,11 +10,12 @@ public class Switch : MonoBehaviour
     public GameObject ladder;
     bool isOn = false;
     bool canActivate = false;
+    public AudioSource audioSource;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         spriteRenderer.sprite = offSprite;
-        SwitchAction = InputSystem.actions.FindAction("Attack");
+        SwitchAction = InputSystem.actions.FindAction("Interact");
     }
 
     // Update is called once per frame
@@ -22,7 +23,7 @@ public class Switch : MonoBehaviour
     {
         if (SwitchAction.triggered && canActivate && !isOn)
         {
-            Debug.Log("Switch activated");
+            audioSource.Play();
             spriteRenderer.sprite = onSprite;
             ladder.gameObject.transform.position = new Vector3(ladder.gameObject.transform.position.x, -1.5f, 0);
             isOn = true;
@@ -33,7 +34,6 @@ public class Switch : MonoBehaviour
     {
         if (collider.gameObject.tag == "Player")
         {
-            Debug.Log("Player entered switch area");
             canActivate = true;
         }
     }
@@ -42,7 +42,6 @@ public class Switch : MonoBehaviour
     {
         if (collider.gameObject.tag == "Player")
         {
-            Debug.Log("Player exited switch area");
             canActivate = false;
         }
     }

@@ -3,8 +3,6 @@ using UnityEngine.InputSystem;
 
 public class Grizz : MonoBehaviour
 {
-    InputAction CrouchAction;
-    
     public SpriteRenderer spriteRenderer;
     public Sprite defaultSprite;
     public Sprite crouchSprite;
@@ -20,39 +18,45 @@ public class Grizz : MonoBehaviour
 
     public float crouchScale = 0.8f;
 
-    bool isCrouching = false;
-    bool isSeparated = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        CrouchAction = InputSystem.actions.FindAction("Crouch");
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (CrouchAction.triggered)
-        {
-            isCrouching = !isCrouching;
-            spriteRenderer.sprite = isCrouching ? crouchSprite : defaultSprite;
-            GetComponentInParent<Rigidbody2D>().transform.localScale = new Vector3(1, isCrouching ? crouchScale : 1, 1);
-            if (!isSeparated) {
-                isSeparated = true;
-                originalPanda.SetActive(false);
-                originalPolar.SetActive(false);
-                pandaClone = Instantiate(pandaPrefab, transform.position + new Vector3(0, 1, 0), Quaternion.identity); 
-                polarClone = Instantiate(polarPrefab, transform.position + new Vector3(0, 2, 0), Quaternion.identity);
-                platform = Instantiate(platformPrefab, transform.position + new Vector3(0, .5f, 0), Quaternion.identity);
-            }
-        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.tag == "Platform")
+    }
+
+    void OnTriggerEnter2D(Collider2D collider)
+    {
+        if (GetComponentInParent<PlayerController>().CurrentBear == PlayerController.Bear.Grizz && 
+            GetComponentInParent<PlayerController>().CurrentState != PlayerController.State.Crouching && 
+            collider.gameObject.tag == "Cave")
         {
-            isCrouching = false;
-            isSeparated = false;
+            GetComponentInParent<PlayerController>().CurrentState = PlayerController.State.Crouching;
+            spriteRenderer.sprite = crouchSprite;
+            GetComponentInParent<Rigidbody2D>().transform.localScale = new Vector3(1, crouchScale, 1);
+            originalPanda.SetActive(false);
+            originalPolar.SetActive(false);
+            pandaClone = Instantiate(pandaPrefab, transform.position + new Vector3(0, 1, 0), Quaternion.identity); 
+            polarClone = Instantiate(polarPrefab, transform.position + new Vector3(0, 2, 0), Quaternion.identity);
+            platform = Instantiate(platformPrefab, transform.position + new Vector3(0, .5f, 0), Quaternion.identity);
+
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D collider)
+    {
+        if (GetComponentInParent<PlayerController>().CurrentBear == PlayerController.Bear.Grizz && 
+            GetComponentInParent<PlayerController>().CurrentState == PlayerController.State.Crouching && 
+            collider.gameObject.tag == "Cave")
+        {
+            GetComponentInParent<PlayerController>().CurrentState = PlayerController.State.OnGround;
             spriteRenderer.sprite = defaultSprite;
             GetComponentInParent<Rigidbody2D>().transform.localScale = new Vector3(1, 1, 1);
             Destroy(polarClone);
@@ -63,6 +67,6 @@ public class Grizz : MonoBehaviour
             transform.localPosition = Vector3.zero;
             originalPanda.transform.localPosition = new Vector3(0, 1, 0); 
             originalPolar.transform.localPosition = new Vector3(0, 2, 0);
-        } 
+        }
     }
 }

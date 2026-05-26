@@ -30,7 +30,7 @@ public class Panda : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collider)
     {
-        if (collider.gameObject.tag == "Climbable")
+        if (GetComponentInParent<PlayerController>().CurrentBear == PlayerController.Bear.Panda && collider.gameObject.tag == "Climbable")
         {
             canClimb = true;
         }
@@ -38,7 +38,7 @@ public class Panda : MonoBehaviour
 
     void OnTriggerExit2D(Collider2D collider)
     {
-        if (collider.gameObject.tag == "Climbable")
+        if (GetComponentInParent<PlayerController>().CurrentBear == PlayerController.Bear.Panda && collider.gameObject.tag == "Climbable")
         {
             spriteRenderer.sprite = defaultSprite;
             GetComponentInParent<PlayerController>().CurrentState = PlayerController.State.InAir;

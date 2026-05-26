@@ -23,7 +23,6 @@ public class Polar : MonoBehaviour
     void OnTriggerEnter2D(Collider2D collider)
     {
         if (canSwim(collider)) {
-            GetComponentInParent<PlayerController>().CurrentState = PlayerController.State.InWater;
             spriteRenderer.sprite = swimSprite;
             GetComponentInParent<Rigidbody2D>().linearVelocityY = 0f;
             GetComponentInParent<Rigidbody2D>().gravityScale = 0f;
@@ -34,7 +33,6 @@ public class Polar : MonoBehaviour
     {
         if (canSwim(collider))
         {
-            GetComponentInParent<PlayerController>().CurrentState = PlayerController.State.InAir;
             spriteRenderer.sprite = defaultSprite;
             GetComponentInParent<Rigidbody2D>().gravityScale = GetComponentInParent<PlayerController>().gravityForce;
         }

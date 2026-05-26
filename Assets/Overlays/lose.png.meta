@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: 311a4d0a5b4e9ab7d97451aa39207015
+guid: c137c79af03193df69d94028757eb9ee
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6799909053669679374
-    second: How_to_Play_0
+      213: 1135112129639667522
+    second: lose_0
+  - first:
+      213: 8875718442503512415
+    second: lose_1
+  - first:
+      213: -8390199439895473014
+    second: lose_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +52,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -113,13 +119,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: How_to_Play_0
+      name: lose_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 1920
-        height: 1080
+        x: 441
+        y: 430
+        width: 120
+        height: 229
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +134,52 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2fe5e0f3ebed1a1a0800000000000000
-      internalID: -6799909053669679374
+      spriteID: 247d863c77ab0cf00800000000000000
+      internalID: 1135112129639667522
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lose_1
+      rect:
+        serializedVersion: 2
+        x: 611
+        y: 372
+        width: 510
+        height: 290
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f512ecbd5e2ec2b70800000000000000
+      internalID: 8875718442503512415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lose_2
+      rect:
+        serializedVersion: 2
+        x: 1169
+        y: 471
+        width: 304
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8459560016009b80800000000000000
+      internalID: -8390199439895473014
       vertices: []
       indices: 
       edges: []
@@ -138,7 +188,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +198,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      How_to_Play_0: -6799909053669679374
+      lose_0: 1135112129639667522
+      lose_1: 8875718442503512415
+      lose_2: -8390199439895473014
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
